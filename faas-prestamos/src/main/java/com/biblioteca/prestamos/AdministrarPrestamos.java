@@ -1,43 +1,46 @@
 package com.biblioteca.prestamos;
 
-import com.microsoft.azure.functions.ExecutionContext;
-import com.microsoft.azure.functions.HttpMethod;
-import com.microsoft.azure.functions.HttpRequestMessage;
-import com.microsoft.azure.functions.HttpResponseMessage;
-import com.microsoft.azure.functions.HttpStatus;
-import com.microsoft.azure.functions.annotation.AuthorizationLevel;
-import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.*;
+import com.microsoft.azure.functions.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import java.sql.*;
 import java.util.Optional;
 
-/**
- * Azure Functions with HTTP Trigger.
- */
-public class Function {
-    /**
-     * This function listens at endpoint "/api/HttpExample". Two ways to invoke it using "curl" command in bash:
-     * 1. curl -d "HTTP Body" {your host}/api/HttpExample
-     * 2. curl "{your host}/api/HttpExample?name=HTTP%20Query"
-     */
-    @FunctionName("HttpExample")
+public class AdministrarPrestamos {
+
+    private static final Gson gson = new Gson();
+
+    @FunctionName("AdministrarPrestamos")
     public HttpResponseMessage run(
-            @HttpTrigger(
-                name = "req",
-                methods = {HttpMethod.GET, HttpMethod.POST},
-                authLevel = AuthorizationLevel.ANONYMOUS)
-                HttpRequestMessage<Optional<String>> request,
+            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
-        context.getLogger().info("Java HTTP trigger processed a request.");
 
-        // Parse query parameter
-        final String query = request.getQueryParameters().get("name");
-        final String name = request.getBody().orElse(query);
+        String dbUrl = System.getenv().getOrDefault("DB_URL", "jdbc:oracle:thin:@//localhost:1521/XE");
+        String dbUser = System.getenv().getOrDefault("DB_USER", "system");
+        String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "TuPassword123");
 
-        if (name == null) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Please pass a name on the query string or in the request body").build();
-        } else {
-            return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + name).build();
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
+            // CREATE: Registrar un préstamo
+            String body = request.getBody().orElse("{}");
+            JsonObject jsonBody = gson.fromJson(body, JsonObject.class);
+            
+            String query = "INSERT INTO PRESTAMOS (id_prestamo, id_usuario, id_libro, fecha_prestamo) VALUES (?, ?, ?, SYSDATE)";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, jsonBody.get("id_prestamo").getAsInt());
+            pstmt.setInt(2, jsonBody.get("id_usuario").getAsInt());
+            pstmt.setInt(3, jsonBody.get("id_libro").getAsInt());
+            pstmt.executeUpdate();
+
+            JsonObject response = new JsonObject();
+            response.addProperty("mensaje", "Préstamo registrado exitosamente");
+            return request.createResponseBuilder(HttpStatus.CREATED).header("Content-Type", "application/json").body(gson.toJson(response)).build();
+
+        } catch (Exception e) {
+            JsonObject error = new JsonObject();
+            error.addProperty("error", e.getMessage());
+            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).header("Content-Type", "application/json").body(gson.toJson(error)).build();
         }
     }
 }
