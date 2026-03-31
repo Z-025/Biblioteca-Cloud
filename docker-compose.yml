@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim
+    environment:
+      - ORACLE_PASSWORD=TuPassword123
+    ports:
+      - "1521:1521"
+  faas-usuarios:
+    build: ./faas-usuarios
+    ports:
+      - "8081:80"
+  faas-prestamos:
+    build: ./faas-prestamos
+    ports:
+      - "8082:80"
+  bff-biblioteca:
+    build: ./bff-biblioteca
+    ports:
+      - "8080:8080"
+    environment:
+      - URL_FAAS_USUARIOS=http://faas-usuarios:80/api/AdministrarUsuarios
