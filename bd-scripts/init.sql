@@ -18,3 +18,9 @@ CREATE TABLE PRESTAMOS (
     FOREIGN KEY (id_usuario) REFERENCES USUARIOS(id_usuario),
     FOREIGN KEY (id_libro) REFERENCES LIBROS(id_libro)
 );
+
+INSERT INTO USUARIOS VALUES (1, 'Pamela Azua', 'pamela.azua@duocuc.cl');
+INSERT INTO LIBROS VALUES (101, 'Cloud Native Development', 'Disponible');
+INSERT INTO PRESTAMOS VALUES (501, 1, 101, SYSDATE);
+
+COMMIT;

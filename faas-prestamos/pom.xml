@@ -11,7 +11,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <azure.functions.maven.plugin.version>1.40.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>3.2.2</azure.functions.java.library.version>
         <functionAppName>faas-prestamos-1774920964372</functionAppName>
@@ -23,13 +23,13 @@
             <artifactId>azure-functions-java-library</artifactId>
             <version>${azure.functions.java.library.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.4.2</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -38,9 +38,15 @@
         </dependency>
 
         <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java</artifactId>
+            <version>22.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
-            <version>21.9.0.0</version>
+            <artifactId>ojdbc11</artifactId>
+            <version>23.2.0.0</version>
         </dependency>
 
         <dependency>
@@ -69,13 +75,11 @@
                 <configuration>
                     <appName>${functionAppName}</appName>
                     <resourceGroup>java-functions-group</resourceGroup>
-                    
                     <region>westus3</region>
-                    
                     <appServicePlanName>java-functions-app-service-plan</appServicePlanName>
                     <runtime>
-                        <os>linux</os> 
-                        <javaVersion>17</javaVersion>
+                        <os>linux</os>
+                        <javaVersion>21</javaVersion>
                     </runtime>
                     <appSettings>
                         <property>
