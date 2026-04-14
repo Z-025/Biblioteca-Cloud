@@ -2,6 +2,7 @@ package com.biblioteca.prestamos;
 
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.azure.functions.*;
+import com.google.gson.Gson; // Añadido el import de Gson
 import java.util.Optional;
 
 public class PrestamosRest {
@@ -11,11 +12,11 @@ public class PrestamosRest {
             @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.ANONYMOUS, route = "rest/prestamos") HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
 
-        context.getLogger().info("Ejecutando API REST de Préstamos (Mock)");
+        context.getLogger().info("Ejecutando API REST de Préstamos desde Oracle");
 
         return request.createResponseBuilder(HttpStatus.OK)
                 .header("Content-Type", "application/json")
-                .body(PrestamosRepository.obtenerPrestamos())
+                .body(new Gson().toJson(PrestamosRepository.obtenerPrestamos()))
                 .build();
     }
-}   
+}
