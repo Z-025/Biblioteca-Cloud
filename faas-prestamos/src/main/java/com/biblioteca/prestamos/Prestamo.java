@@ -2,14 +2,14 @@ package com.biblioteca.prestamos;
 
 public class Prestamo {
     public int id_prestamo;
-    public String titulo_libro;
-    public String nombre_usuario;
-    public String fecha;
+    public String titulo;
+    public String nombre;
+    public String fecha_prestamo;
 
-    public Prestamo(int id_prestamo, String titulo_libro, String nombre_usuario, String fecha) {
+    public Prestamo(int id_prestamo, String titulo, String nombre, String fecha_prestamo) {
         this.id_prestamo = id_prestamo;
-        this.titulo_libro = titulo_libro;
-        this.nombre_usuario = nombre_usuario;
-        this.fecha = fecha;
+        this.titulo = titulo;
+        this.nombre = nombre;
+        this.fecha_prestamo = fecha_prestamo;
     }
 }
