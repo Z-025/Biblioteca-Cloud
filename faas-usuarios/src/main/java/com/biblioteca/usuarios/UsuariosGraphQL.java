@@ -1,42 +1,54 @@
 package com.biblioteca.usuarios;
 
-import com.microsoft.azure.functions.annotation.*;
+import com.biblioteca.Graphql.GraphQLProvider;
 import com.microsoft.azure.functions.*;
+import com.microsoft.azure.functions.annotation.*;
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.*;
-import com.google.gson.Gson;
+
 import java.util.Map;
 import java.util.Optional;
 
 public class UsuariosGraphQL {
-    private GraphQL graphQL;
 
-    public UsuariosGraphQL() {
-        String schema = "type Usuario { id_usuario: ID! nombre: String email: String } type Query { usuarios: [Usuario] }";
-        TypeDefinitionRegistry typeRegistry = new SchemaParser().parse(schema);
-        RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring()
-                .type("Query", typeWiring -> typeWiring.dataFetcher("usuarios", env -> UsuariosRepository.obtenerUsuarios()))
-                .build();
-        GraphQLSchema graphQLSchema = new SchemaGenerator().makeExecutableSchema(typeRegistry, wiring);
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
-    }
+    private static final GraphQL graphQL = GraphQLProvider.buildGraphQL();
 
     @FunctionName("GraphQLUsuarios")
     public HttpResponseMessage run(
-            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.ANONYMOUS, route = "graphql/usuarios") HttpRequestMessage<Optional<String>> request,
-            final ExecutionContext context) {
-        try {
-            String body = request.getBody().orElse("");
-            Gson gson = new Gson();
-            Map requestMap = gson.fromJson(body, Map.class);
-            ExecutionResult executionResult = graphQL.execute((String) requestMap.get("query"));
-            return request.createResponseBuilder(HttpStatus.OK)
-                    .header("Content-Type", "application/json")
-                    .body(gson.toJson(executionResult.toSpecification())).build();
-        } catch (Exception e) {
-            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage()).build();
+        @HttpTrigger(
+            name = "req",
+            methods = {HttpMethod.POST},
+            authLevel = AuthorizationLevel.ANONYMOUS,
+            route = "graphql/usuarios"
+        ) 
+        HttpRequestMessage<Optional<Map<String, Object>>> request,
+        final ExecutionContext context
+    ) {
+        context.getLogger().info("Ejecutando API GraphQL de Usuarios (Arquitectura Oficial)");
+
+        Map<String, Object> body = request.getBody().orElse(null);
+
+        if (body == null || !body.containsKey("query")) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                .header("Content-Type", "application/json")
+                .body(Map.of("error", "El body debe incluir la propiedad 'query'"))
+                .build();
         }
+
+        String query = String.valueOf(body.get("query"));
+        Object variables = body.get("variables");
+
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+            .query(query)
+            .variables(variables instanceof Map ? (Map<String, Object>) variables : Map.of())
+            .build();
+
+        ExecutionResult executionResult = graphQL.execute(executionInput);
+
+        return request.createResponseBuilder(HttpStatus.OK)
+            .header("Content-Type", "application/json")
+            .body(executionResult.toSpecification())
+            .build();
     }
 }

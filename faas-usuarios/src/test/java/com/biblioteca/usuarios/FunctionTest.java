@@ -15,8 +15,10 @@ public class FunctionTest {
     public void testObtenerUsuariosREST() throws Exception {
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
         final Optional<String> queryBody = Optional.empty();
         doReturn(queryBody).when(req).getBody();
+
         doAnswer(new Answer<HttpResponseMessage.Builder>() {
             @Override
             public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
@@ -29,6 +31,7 @@ public class FunctionTest {
         doReturn(Logger.getGlobal()).when(context).getLogger();
 
         final HttpResponseMessage ret = new UsuariosRest().run(req, context);
+
         assertEquals(HttpStatus.OK, ret.getStatus());
     }
 }
