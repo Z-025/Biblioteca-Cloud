@@ -6,7 +6,6 @@ import java.util.*;
 
 public class PrestamosRepository {
 
-    // 1. Método original (Para la API REST)
     public static List<Prestamo> obtenerPrestamos() {
         List<Prestamo> lista = new ArrayList<>();
         String query = "SELECT p.id_prestamo, l.titulo, u.nombre, p.fecha_prestamo " +
@@ -30,7 +29,6 @@ public class PrestamosRepository {
         return lista;
     }
 
-    // 2. NUEVO MÉTODO PARA GRAPHQL (Búsqueda por ID)
     public static Prestamo obtenerPrestamoPorId(int id) {
         String query = "SELECT p.id_prestamo, l.titulo, u.nombre, p.fecha_prestamo " +
                        "FROM PRESTAMOS p " +
@@ -41,7 +39,7 @@ public class PrestamosRepository {
         try (Connection conn = OracleConnectionFactory.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
-            pstmt.setInt(1, id); // Filtramos por el ID enviado desde GraphQL
+            pstmt.setInt(1, id);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -55,5 +53,23 @@ public class PrestamosRepository {
             throw new RuntimeException("Error buscando préstamo por ID: " + e.getMessage(), e);
         }
         return null;
+    }
+
+    public static boolean crearPrestamo(int idPrestamo, int idUsuario, int idLibro) {
+        String query = "INSERT INTO PRESTAMOS (id_prestamo, id_usuario, id_libro, fecha_prestamo) VALUES (?, ?, ?, SYSDATE)";
+        
+        try (Connection conn = OracleConnectionFactory.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setInt(1, idPrestamo);
+            pstmt.setInt(2, idUsuario);
+            pstmt.setInt(3, idLibro);
+            
+            int filasAfectadas = pstmt.executeUpdate();
+            return filasAfectadas > 0;
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error insertando préstamo en Oracle: " + e.getMessage(), e);
+        }
     }
 }
