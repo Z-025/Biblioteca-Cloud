@@ -12,4 +12,8 @@ public class QueryResolver {
     public List<Prestamo> getPrestamos() {
         return PrestamosRepository.obtenerPrestamos();
     }
+
+    public Prestamo getPrestamoPorId(int id) {
+        return PrestamosRepository.obtenerPrestamoPorId(id);
+    }
 }
