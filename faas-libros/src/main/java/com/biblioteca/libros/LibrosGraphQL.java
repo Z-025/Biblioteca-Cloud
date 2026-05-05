@@ -1,6 +1,6 @@
-package com.biblioteca.prestamos;
+package com.biblioteca.libros;
 
-import com.biblioteca.Graphql.GraphQLProvider;
+import com.biblioteca.graphql.GraphQLProvider;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
 import graphql.ExecutionInput;
@@ -10,40 +10,31 @@ import graphql.GraphQL;
 import java.util.Map;
 import java.util.Optional;
 
-public class PrestamosGraphQL {
+public class LibrosGraphQL {
 
     private static final GraphQL graphQL = GraphQLProvider.buildGraphQL();
 
-    @FunctionName("GraphQLPrestamos")
+    @FunctionName("GraphQLLibros")
     public HttpResponseMessage run(
         @HttpTrigger(
             name = "req",
             methods = {HttpMethod.POST},
             authLevel = AuthorizationLevel.ANONYMOUS,
-            route = "graphql/prestamos"
+            route = "graphql/libros"
         ) 
         HttpRequestMessage<Optional<Map<String, Object>>> request,
         final ExecutionContext context
     ) {
-        context.getLogger().info("Ejecutando API GraphQL de Préstamos Oficial (Modelo Profesor)");
+        context.getLogger().info("Ejecutando API GraphQL de Libros");
 
         Map<String, Object> body = request.getBody().orElse(null);
-
         if (body == null || !body.containsKey("query")) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                .header("Content-Type", "application/json")
-                .body(Map.of("error", "El body debe incluir la propiedad 'query'"))
-                .build();
+                .body(Map.of("error", "El body debe incluir la propiedad 'query'")).build();
         }
 
         String query = String.valueOf(body.get("query"));
-        Object variables = body.get("variables");
-
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-            .query(query)
-            .variables(variables instanceof Map ? (Map<String, Object>) variables : Map.of())
-            .build();
-
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput().query(query).build();
         ExecutionResult executionResult = graphQL.execute(executionInput);
 
         return request.createResponseBuilder(HttpStatus.OK)

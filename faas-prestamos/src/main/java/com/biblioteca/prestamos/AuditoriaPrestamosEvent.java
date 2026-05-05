@@ -12,6 +12,6 @@ public class AuditoriaPrestamosEvent {
         
         context.getLogger().info("=== NUEVO EVENTO RECIBIDO EN SEGUNDO PLANO ===");
         context.getLogger().info("Datos del evento procesado: " + eventData);
-        context.getLogger().info("Notificación/Auditoría registrada exitosamente.");
+        context.getLogger().info("Préstamo registrado correctamente");
     }
 }
